@@ -59,26 +59,36 @@ access_token_secret=os.environ.get('TWITTER_ACCESS_TOKEN_SECRET')
 auth = tw.OAuthHandler(api_key, api_secret_key)
 auth.set_access_token(access_token, access_token_secret)
 api = tw.API(auth, wait_on_rate_limit=True)
+try:
+    api.verify_credentials()
+    print("Authentication OK")
+except:
+    print("Error during authentication")
+    
 
 search_words = "Olympics"
 date_since = "2021-09-21"
 
+api.search
 tweets = tw.Cursor(api.search,tweet_mode="extended",
               q=search_words,
               lang="en",
-              geocode="20.5937,78.9629,3287263km",
-              since=date_since).items(20)
+              since=date_since).items(1000)
 
 texts=[]
 mentions=[]
 twitterURLs=[]
 tweetID=[]
+count=0
 for tweet in tweets:
     texts.append(tweet.full_text)
     mentions.append(tweet.entities['user_mentions'])
     twitterURLs.append(tweet.entities['urls'])
     tweetID.append(tweet.id)
-
+    count+=1
+    
+    
+print("The total number of collected tweets is",count)
 
 texts = preprocessing(texts)
 for i in range(len(texts)):
@@ -88,11 +98,6 @@ for i in range(len(texts)):
     text_tokens = word_tokenize(texts[i])
     texts[i] = [word for word in text_tokens if not word in stopwords.words()]
 
-'''
-for i in texts:
-    print(i)
-    print("\n\n")
-'''
 
 total_tokens=[]
 for i in range(len(texts)):
@@ -109,9 +114,16 @@ for i in total_tokens:
         if i in texts[j]:
             temp.append(j+1)
     termDict[i]=temp
- 
-print(termDict)
 
+
+f=open("invertedIndex","w")
+for i in termDict:
+    termDict[i] = map(str,termDict[i])
+    listString = ",".join(termDict[i])
+    string = i + ";" + listString + "\n"
+    f.write(string)
+  
+f.close()
 
 '''
 
