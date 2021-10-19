@@ -1,0 +1,10 @@
+.text-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 35px;
+  color: black;
+  background-color: #1da1f2;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
