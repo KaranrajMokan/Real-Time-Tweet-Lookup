@@ -67,25 +67,36 @@ except:
     
 
 search_words = "Olympics"
-date_since = "2021-09-21"
+date_since = "2021-10-24"
 
-api.search
-tweets = tw.Cursor(api.search,tweet_mode="extended",
+tweets = tw.Cursor(api.search_tweets,tweet_mode="extended",
               q=search_words,
-              lang="en",
-              since=date_since).items(1000)
+              lang="en").items(10)
 
 texts=[]
-mentions=[]
-twitterURLs=[]
 tweetID=[]
+name=[]
+screen_name=[]
+profile_image=[]
+description=[]
+following=[]
+followers=[]
+retweet_count=[]
+likes_count=[]
 count=0
 for tweet in tweets:
-    texts.append(tweet.full_text)
-    mentions.append(tweet.entities['user_mentions'])
-    twitterURLs.append(tweet.entities['urls'])
-    tweetID.append(tweet.id)
-    count+=1
+    if tweet.full_text not in texts:
+        name.append(tweet.user.name)
+        screen_name.append(tweet.user.screen_name)
+        profile_image.append(tweet.user.profile_image_url)
+        description.append(tweet.user.description)
+        following.append(tweet.user.friends_count)
+        followers.append(tweet.user.followers_count)
+        texts.append(tweet.full_text)
+        tweetID.append(tweet.id)
+        retweet_count.append(tweet.retweet_count)
+        likes_count.append(tweet.favorite_count)
+        count+=1
     
     
 print("The total number of collected tweets is",count)
@@ -98,6 +109,17 @@ for i in range(len(texts)):
     text_tokens = word_tokenize(texts[i])
     texts[i] = [word for word in text_tokens if not word in stopwords.words()]
 
+f=open('tweets','w')
+for i in texts:
+    string = " ".join(i)
+    string = string + "\n"
+    f.write(string)
+
+f.close()
+
+
+
+####################################################
 
 total_tokens=[]
 for i in range(len(texts)):
@@ -124,6 +146,8 @@ for i in termDict:
     f.write(string)
   
 f.close()
+
+
 
 '''
 

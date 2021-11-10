@@ -1,5 +1,7 @@
 import { Component } from "react";
+import React from "react";
 import moment from "moment";
+import axios from "axios";
 import {
   Layout,
   Input,
@@ -11,7 +13,9 @@ import {
   message,
   Avatar,
   List,
+  Space,
 } from "antd";
+import { HeartOutlined, RetweetOutlined } from "@ant-design/icons";
 import { countries } from "country-city-location";
 var languages = require("language-list")();
 
@@ -21,32 +25,23 @@ const { Option } = Select;
 
 const languageData = languages.getData();
 
-const listData = [];
-for (let i = 0; i < 23; i++) {
-  listData.push({
-    href: "https://ant.design",
-    title: `ant design part ${i}`,
-    avatar: "https://joeschmoe.io/api/v1/random",
-    description:
-      "Ant Design, a design language for background applications, is refined by Ant UED Team.",
-    content:
-      "We supply a series of design principles, practical patterns and high quality design resources (Sketch and Axure), to help people create their product prototypes beautifully and efficiently.",
-  });
-}
+const IconText = ({ icon, text }) => (
+  <Space>
+    {React.createElement(icon)}
+    {text}
+  </Space>
+);
 
 class SearchEngine extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
       searchText: "",
       date: "",
       country: "",
       language: "",
       tweetCount: "",
-      commentCount: "",
-      likesCount: "",
-      retweetCount: "",
+      listData: [],
     };
 
     this.handleKeywordChange = this.handleKeywordChange.bind(this);
@@ -55,14 +50,11 @@ class SearchEngine extends Component {
     this.handleCountryChange = this.handleCountryChange.bind(this);
     this.handleLanguageChange = this.handleLanguageChange.bind(this);
     this.handleTweetCountChange = this.handleTweetCountChange.bind(this);
-    this.handleCommentCountChange = this.handleCommentCountChange.bind(this);
-    this.handleLikesCountChange = this.handleLikesCountChange.bind(this);
-    this.handleRetweetCountChange = this.handleRetweetCountChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleKeywordChange(e) {
-    this.setState({ searchText: e });
+    this.setState({ searchText: e.target.value });
   }
 
   disabledDate(current) {
@@ -85,29 +77,53 @@ class SearchEngine extends Component {
     this.setState({ tweetCount: e });
   }
 
-  handleCommentCountChange(e) {
-    this.setState({ commentCount: e });
-  }
-
-  handleLikesCountChange(e) {
-    this.setState({ likesCount: e });
-  }
-
-  handleRetweetCountChange(e) {
-    this.setState({ retweetCount: e });
-  }
-
   handleSubmit(e) {
     if (
       this.state.searchText !== "" &&
       this.state.date !== "" &&
       this.state.country !== "" &&
       this.state.language !== "" &&
-      this.state.tweetCount !== "" &&
-      this.state.commentCount !== "" &&
-      this.state.likesCount !== "" &&
-      this.state.retweetCount !== ""
+      this.state.tweetCount !== ""
     ) {
+      const formData = {
+        searchText: this.state.searchText,
+        date: this.state.date,
+        country: this.state.country,
+        language: this.state.language,
+        tweetCount: this.state.tweetCount,
+      };
+      axios
+        .request({
+          method: "post",
+          url: "http://localhost:5000/tweets",
+          data: formData,
+        })
+        .then((response) => {
+          const data = response.data;
+          this.setState({ listData: [] });
+          for (let i = 0; i < data["description"].length; i++) {
+            this.setState((prevState) => ({
+              listData: [
+                ...prevState.listData,
+                {
+                  name: data["name"][i],
+                  href: "https://twitter.com/" + data["screen_name"][i],
+                  screen_name: data["screen_name"][i],
+                  profile_image_url: data["profile_image_url"][i],
+                  description: data["description"][i],
+                  following: data["following"][i],
+                  followers: data["followers"][i],
+                  texts: data["tweet"][i],
+                  likes_count: data["likes_count"][i],
+                  retweet_count: data["retweet_count"][i],
+                },
+              ],
+            }));
+          }
+        })
+        .catch((error) => {
+          console.log(error.response);
+        });
     } else {
       message.error("Please fill all inputs");
     }
@@ -148,7 +164,7 @@ class SearchEngine extends Component {
                 textAlign: "center",
               }}
             >
-              <Col span={8} xs={24} md={8}>
+              <Col span={6} xs={24} md={6}>
                 <DatePicker
                   format="YYYY-MM-DD"
                   disabledDate={this.disabledDate}
@@ -157,7 +173,7 @@ class SearchEngine extends Component {
                   style={{ width: 300 }}
                 />
               </Col>
-              <Col span={8} xs={24} md={8}>
+              <Col span={6} xs={24} md={6}>
                 <Select
                   showSearch
                   placeholder="Select the country of tweet origin"
@@ -171,7 +187,7 @@ class SearchEngine extends Component {
                   ))}{" "}
                 </Select>
               </Col>
-              <Col span={8} xs={24} md={8}>
+              <Col span={6} xs={24} md={6}>
                 <Select
                   showSearch
                   placeholder="Select the language of tweet"
@@ -179,7 +195,7 @@ class SearchEngine extends Component {
                   onChange={this.handleLanguageChange}
                 >
                   {languageData.map((item) => (
-                    <Option key={item.code} value={item.language}>
+                    <Option key={item.code} value={item.code}>
                       {item.language}
                     </Option>
                   ))}{" "}
@@ -192,85 +208,12 @@ class SearchEngine extends Component {
                   placeholder="Select the number of tweets"
                   onChange={this.handleTweetCountChange}
                 >
-                  <Option value="10">Ten(10)</Option>
-                  <Option value="20">Twenty(20)</Option>
-                  <Option value="50">Fifty(50)</Option>
-                  <Option value="100">Hundred(100)</Option>
-                  <Option value="200">Two Hundred(200)</Option>
-                  <Option value="500">Five Hundred(500)</Option>
-                  <Option value="1000">Thousand(1000)</Option>
-                </Select>
-              </Col>
-              <Col span={6} xs={24} md={6}>
-                <Select
-                  showSearch
-                  style={{ width: 300 }}
-                  placeholder="Select the number of comments"
-                  onChange={this.handleCommentCountChange}
-                >
-                  <Option value="<10">Less than 10 (&lt;10)</Option>
-                  <Option value="20-50">Twenty to Fifty(20-50)</Option>
-                  <Option value="50-100">Fifty to One Hundred(50-100)</Option>
-                  <Option value="100-200">
-                    One Hundred to Two Hundred(100-200)
-                  </Option>
-                  <Option value="200-500">
-                    Two Hundred to Five Hundred(200-500)
-                  </Option>
-                  <Option value="500-1000">
-                    Five Hundred to Thousand(500-1000)
-                  </Option>
-                  <Option value=">1000">
-                    Greater than One Thousand(&gt;1000)
-                  </Option>
-                </Select>
-              </Col>
-              <Col span={6} xs={24} md={6}>
-                <Select
-                  showSearch
-                  style={{ width: 300 }}
-                  placeholder="Select the number of likes"
-                  onChange={this.handleLikesCountChange}
-                >
-                  <Option value="<10">Less than 10 (&lt;10)</Option>
-                  <Option value="20-50">Twenty to Fifty(20-50)</Option>
-                  <Option value="50-100">Fifty to One Hundred(50-100)</Option>
-                  <Option value="100-200">
-                    One Hundred to Two Hundred(100-200)
-                  </Option>
-                  <Option value="200-500">
-                    Two Hundred to Five Hundred(200-500)
-                  </Option>
-                  <Option value="500-1000">
-                    Five Hundred to Thousand(500-1000)
-                  </Option>
-                  <Option value=">1000">
-                    Greater than One Thousand(&gt;1000)
-                  </Option>
-                </Select>
-              </Col>
-              <Col span={6} xs={24} md={6}>
-                <Select
-                  showSearch
-                  style={{ width: 300 }}
-                  placeholder="Select the number of retweets"
-                  onChange={this.handleRetweetCountChange}
-                >
-                  <Option value="<10">Less than 10 (&lt;10)</Option>
-                  <Option value="20-50">Twenty to Fifty(20-50)</Option>
-                  <Option value="50-100">Fifty to One Hundred(50-100)</Option>
-                  <Option value="100-200">
-                    One Hundred to Two Hundred(100-200)
-                  </Option>
-                  <Option value="200-500">
-                    Two Hundred to Five Hundred(200-500)
-                  </Option>
-                  <Option value="500-1000">
-                    Five Hundred to Thousand(500-1000)
-                  </Option>
-                  <Option value=">1000">
-                    Greater than One Thousand(&gt;1000)
-                  </Option>
+                  <Option value="1">One (1)</Option>
+                  <Option value="5">Five (5)</Option>
+                  <Option value="10">Ten (10)</Option>
+                  <Option value="20">Twenty (20)</Option>
+                  <Option value="50">Fifty (50)</Option>
+                  <Option value="100">Hundred (100)</Option>
                 </Select>
               </Col>
             </Row>
@@ -299,36 +242,52 @@ class SearchEngine extends Component {
                   style={{
                     paddingTop: "50px",
                     fontSize: "20px",
-                    width: "1200px",
-                    paddingLeft: "200px",
+                    width: "1300px",
+                    paddingLeft: "300px",
                   }}
                 >
                   <List
                     itemLayout="vertical"
+                    size="large"
                     pagination={{
                       pageSize: 3,
                     }}
-                    dataSource={listData}
+                    dataSource={this.state.listData}
                     renderItem={(item) => (
                       <List.Item
-                        key={item.title}
-                        extra={
-                          <div>
-                            <img
-                              width={250}
-                              style={{ paddingTop: "20px" }}
-                              alt="logo"
-                              src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png"
-                            />
-                          </div>
-                        }
+                        key={item.name}
+                        actions={[
+                          <IconText
+                            icon={HeartOutlined}
+                            text={item.likes_count}
+                            key="list-vertical-star-o"
+                          />,
+                          <IconText
+                            icon={RetweetOutlined}
+                            text={item.retweet_count}
+                            key="list-vertical-like-o"
+                          />,
+                        ]}
                       >
                         <List.Item.Meta
-                          avatar={<Avatar src={item.avatar} />}
-                          title={<a href={item.href}>{item.title}</a>}
-                          description={item.description}
+                          avatar={
+                            <Avatar size={64} src={item.profile_image_url} />
+                          }
+                          title={<a href={item.href}>{item.name}</a>}
+                          description={
+                            <div>
+                              <p>{`
+                            @${item.screen_name}
+                            `}</p>
+                              <p>{`
+                            Following:
+                            ${item.following}
+                            Followers:
+                            ${item.followers}`}</p>
+                            </div>
+                          }
                         />
-                        {item.content}
+                        {item.texts}
                       </List.Item>
                     )}
                   />
