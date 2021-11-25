@@ -85,6 +85,11 @@ class SearchEngine extends Component {
       this.state.language !== "" &&
       this.state.tweetCount !== ""
     ) {
+      console.log(this.state.searchText);
+      console.log(this.state.date);
+      console.log(this.state.country);
+      console.log(this.state.language);
+      console.log(this.state.tweetCount);
       const formData = {
         searchText: this.state.searchText,
         date: this.state.date,
@@ -100,6 +105,7 @@ class SearchEngine extends Component {
         })
         .then((response) => {
           const data = response.data;
+          console.log(data);
           this.setState({ listData: [] });
           for (let i = 0; i < data["description"].length; i++) {
             this.setState((prevState) => ({
@@ -120,6 +126,7 @@ class SearchEngine extends Component {
               ],
             }));
           }
+          console.log(this.state.listData);
         })
         .catch((error) => {
           console.log(error.response);

@@ -74,7 +74,7 @@ def remove_numbers(text):
     return text
 
 
-def initialise(data):
+def initialiser(data):
     
     api_key=os.environ.get('TWITTER_API_KEY')
     api_secret_key=os.environ.get('TWITTER_API_SECRET_KEY')
@@ -98,6 +98,16 @@ def initialise(data):
               geocode=string).items(count)
     
     texts=[]
+    tweetID.clear()
+    name.clear()
+    screen_name.clear()
+    profile_image.clear()
+    description.clear()
+    following.clear()
+    followers.clear()
+    full_tweet.clear()
+    likes_count.clear()
+    retweet_count.clear()
     for tweet in tweets:
         if tweet.full_text not in texts and tweet.full_text !="":
             name.append(tweet.user.name)
@@ -176,7 +186,7 @@ def getTweets():
     data = request.data
     dict_str = data.decode("UTF-8")
     data = ast.literal_eval(dict_str)
-    texts = initialise(data)
+    texts = initialiser(data)
     answer = semantic_similarity(data,texts)
     result = final_computation(answer)
     return result
